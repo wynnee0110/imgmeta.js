@@ -1,5 +1,5 @@
 {
-  "name": "imgmeta",
+  "name": "imgmeta-js",
   "version": "1.0.0",
   "description": "Read image dimensions and JPEG EXIF metadata with no runtime dependencies.",
   "main": "./dist/index.js",
