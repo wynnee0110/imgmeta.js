@@ -106,5 +106,5 @@ await remove('input.jpg', 'stripped.jpg');
 
 ## License
 
-ISC License.
+MIT License.
 # imgmeta.js
