@@ -1,4 +1,5 @@
-# imgmeta
+<img width="1024" height="338" alt="1daab24d-a3e7-4bd4-be37-6ff9849abaf2" src="https://github.com/user-attachments/assets/b2c24e9f-4ab6-4f2e-8561-5b94e4ae8af6" />
+
 
 A fast, lightweight, and **zero-dependency** Node.js library to read image dimensions/formats and manage JPEG EXIF metadata. Written in pure TypeScript with zero third-party library dependencies (`sharp` and `exif-parser` are not used).
 
