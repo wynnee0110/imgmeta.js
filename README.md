@@ -27,7 +27,7 @@ A fast, lightweight, and **zero-dependency** Node.js library to read image dimen
 ## Installation
 
 ```bash
-npm install imgmeta
+npm install imgmeta-js
 ```
 
 ---
