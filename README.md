@@ -1,31 +1,38 @@
-<img width="1024" height="338" alt="1daab24d-a3e7-4bd4-be37-6ff9849abaf2" src="https://github.com/user-attachments/assets/b2c24e9f-4ab6-4f2e-8561-5b94e4ae8af6" />
+<img width="1024" height="338" alt="imgmeta-js banner" src="https://github.com/user-attachments/assets/b2c24e9f-4ab6-4f2e-8561-5b94e4ae8af6" />
 
+# imgmeta-js
 
-A fast, lightweight, and **zero-dependency** Node.js library to read image dimensions/formats and manage JPEG EXIF metadata. Written in pure TypeScript with zero third-party library dependencies (`sharp` and `exif-parser` are not used).
+A fast, lightweight, Node.js library for reading image dimensions and formats, as well as parsing and editing JPEG EXIF metadata.
 
-## Features
-
-- **Zero dependencies**: Extremely lightweight, small package size, and highly secure.
-- **Fast format & dimension detection**: Fast detection for major image formats by checking magic bytes directly (not by file extension).
-- **Comprehensive EXIF parser**: Full byte-level scan for APP1 markers and custom TIFF parser to extract EXIF data.
-- **Byte-level metadata editing**: Insert, update, or remove EXIF tags from JPEGs with safe merge semantics and distinct-path protection.
+Built entirely in **TypeScript**.
 
 ---
 
-## Supported Formats
+## ✨ Features
+
+- 🚀 **Zero Dependencies** — Lightweight, secure, and easy to install.
+- ⚡ **Fast Image Detection** — Detects image formats using magic bytes instead of file extensions.
+- 📏 **Read Image Dimensions** — Supports multiple common image formats.
+- 📸 **Comprehensive JPEG EXIF Parser** — Parses EXIF metadata directly from binary data using a custom TIFF parser.
+- ✏️ **Byte-Level EXIF Editing** — Insert, update, or remove JPEG EXIF metadata while preserving existing tags whenever possible.
+- 🛡️ **Pure TypeScript** — No native bindings, no external binaries, and works anywhere Node.js runs.
+
+---
+
+## 📦 Supported Formats
 
 | Format | Read Dimensions | Read EXIF | Write EXIF |
 | :--- | :---: | :---: | :---: |
 | **JPEG** | ✅ | ✅ | ✅ |
 | **PNG** | ✅ | ❌ | ❌ |
 | **GIF** | ✅ | ❌ | ❌ |
-| **WEBP** | ✅ | ❌ | ❌ |
+| **WebP** | ✅ | ❌ | ❌ |
 | **BMP** | ✅ | ❌ | ❌ |
 | **TIFF** | ❌ | ❌ | ❌ |
 
 ---
 
-## Installation
+## 📥 Installation
 
 ```bash
 npm install imgmeta-js
@@ -33,78 +40,97 @@ npm install imgmeta-js
 
 ---
 
-## Usage Examples
+# Usage
 
-### 1. Reading Image Information and EXIF Metadata
+## Reading Image Information and EXIF Metadata
 
-```javascript
-import { read } from 'imgmeta';
+```ts
+import { read } from "imgmeta-js";
 
-const info = await read('photo.jpg');
-console.log(`Format: ${info.format}`); // 'jpeg'
-console.log(`Dimensions: ${info.width}x${info.height}`);
+const info = await read("photo.jpg");
+
+console.log(info.format);
+console.log(info.width, info.height);
 
 if (info.exif) {
-  console.log(`Camera Make: ${info.exif.make}`);
-  console.log(`Camera Model: ${info.exif.model}`);
-  console.log(`Date Taken: ${info.exif.dateTaken}`);
-  
-  // Access raw EXIF tags using their spec IDs:
+  console.log(info.exif.make);
+  console.log(info.exif.model);
+  console.log(info.exif.dateTaken);
+
   const ARTIST_TAG = 0x013B;
-  console.log(`Artist: ${info.exif.raw[ARTIST_TAG]}`);
+  console.log(info.exif.raw[ARTIST_TAG]);
 }
-```
-
-### 2. Inserting EXIF Metadata
-
-Adds new fields. If a tag is already present in the source image, its existing value is preserved.
-
-```javascript
-import { insert } from 'imgmeta';
-
-await insert('input.jpg', 'output.jpg', {
-  IFD0: {
-    Artist: 'Alice Smith',
-    Copyright: '2026 Alice Smith'
-  },
-  IFD1: {
-    DateTimeOriginal: '2026:07:28 17:00:00'
-  }
-});
-```
-
-### 3. Updating EXIF Metadata
-
-Replaces specified fields. Mentioned fields are overwritten, while other existing fields are preserved.
-
-```javascript
-import { update } from 'imgmeta';
-
-await update('input.jpg', 'output.jpg', {
-  IFD0: {
-    Artist: 'Bob Jones' // Overwrites the existing Artist tag
-  }
-});
-```
-
-### 4. Stripping EXIF Metadata
-
-Removes all EXIF metadata from the JPEG image.
-
-```javascript
-import { remove } from 'imgmeta';
-
-await remove('input.jpg', 'stripped.jpg');
 ```
 
 ---
 
-## Limitations
+## Insert EXIF Metadata
 
-- **JPEG Only for Writes**: Modifying metadata (`insert`, `update`, `delete`) is only supported on JPEG format files.
-- **ASCII Tags Only for Custom Merges**: The custom binary TIFF merge logic preserves existing ASCII tags, but other complex binary properties (like embedded thumbnails or complex GPS rational structures) are stripped during write operations unless explicitly overwritten.
+Adds metadata without replacing existing values.
 
-## License
+```ts
+import { insert } from "imgmeta-js";
 
-MIT License.
-# imgmeta.js
+await insert("input.jpg", "output.jpg", {
+  IFD0: {
+    Artist: "Alice Smith",
+    Copyright: "2026 Alice Smith"
+  },
+  EXIF: {
+    DateTimeOriginal: "2026:07:28 17:00:00"
+  }
+});
+```
+
+---
+
+## Update EXIF Metadata
+
+Updates only the specified tags while preserving all others.
+
+```ts
+import { update } from "imgmeta-js";
+
+await update("input.jpg", "output.jpg", {
+  IFD0: {
+    Artist: "Bob Jones"
+  }
+});
+```
+
+---
+
+## Remove EXIF Metadata
+
+Completely removes EXIF metadata from a JPEG image.
+
+```ts
+import { remove } from "imgmeta-js";
+
+await remove("input.jpg", "stripped.jpg");
+```
+
+---
+
+# Limitations
+
+- Writing metadata is currently supported **only for JPEG** files.
+- The custom TIFF merge engine preserves standard ASCII tags. Complex binary structures (such as embedded thumbnails or advanced GPS rational data) are removed unless explicitly rewritten.
+
+---
+
+# 🤝 Contributing
+
+Contributions are always welcome!
+
+Whether it's fixing bugs, improving documentation, adding support for new image formats, optimizing performance, or suggesting new features, every contribution helps make **imgmeta-js** better.
+
+Please read **[CONTRIBUTING.md](CONTRIBUTING.md)** before opening an issue or submitting a pull request. It contains the project's development guidelines, coding standards, and contribution workflow.
+
+If you're unsure where to start, check the open issues or start a discussion—we'd be happy to help.
+
+---
+
+# 📄 License
+
+Released under the **MIT License**.
