@@ -1,0 +1,3 @@
+dist/
+*.tgz
+test/output_*.jpg
