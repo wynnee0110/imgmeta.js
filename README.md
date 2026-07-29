@@ -76,7 +76,7 @@ await insert("input.jpg", "output.jpg", {
     Artist: "Alice Smith",
     Copyright: "2026 Alice Smith"
   },
-  EXIF: {
+  IFD1: {
     DateTimeOriginal: "2026:07:28 17:00:00"
   }
 });

@@ -4,22 +4,23 @@ layout: home
 
 hero:
   name: "imgmeta.js"
-  text: "A documentation site for imgmeta.js"
-  tagline: My great project tagline
+  text: "Lightweight, zero-dependency image metadata"
+  tagline: Read dimensions and edit JPEG EXIF metadata with pure TypeScript.
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: Getting Started
+      link: /guide/getting-started
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: API Reference
+      link: /api/read
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: 🚀 Zero Dependencies
+    details: Lightweight, secure, and easy to install. No native bindings or external binaries.
+  - title: ⚡ Fast Image Detection
+    details: Detects image formats using magic bytes instead of file extensions.
+  - title: 📏 Read Image Dimensions
+    details: Supports JPEG, PNG, GIF, WebP, and BMP.
+  - title: 📸 EXIF Metadata
+    details: Parse and edit JPEG EXIF metadata directly from binary data.
 ---
-
