@@ -4,6 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "imgmeta.js",
   description: "Read image dimensions and JPEG EXIF metadata with no runtime dependencies.",
+  base: "/imgmeta.js/",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
