@@ -2,7 +2,7 @@
 
 # imgmeta-js
 
-A fast, lightweight, Node.js library for reading image dimensions and formats, as well as parsing and editing JPEG EXIF metadata.
+A fast, lightweight, Node.js library for reading image dimensions and formats, as well as parsing and editing EXIF metadata.
 
 Built entirely in **TypeScript**.
 
