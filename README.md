@@ -24,7 +24,7 @@ Built entirely in **TypeScript**.
 | Format | Read Dimensions | Read EXIF | Write EXIF |
 | :--- | :---: | :---: | :---: |
 | **JPEG** | ✅ | ✅ | ✅ |
-| **PNG** | ✅ | ❌ | ❌ |
+| **PNG** | ✅ | ✅  | ✅  |
 | **GIF** | ✅ | ❌ | ❌ |
 | **WebP** | ✅ | ❌ | ❌ |
 | **BMP** | ✅ | ❌ | ❌ |
