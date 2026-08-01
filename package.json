@@ -1,6 +1,6 @@
 {
   "name": "@waynnee1/imgmeta",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Read image dimensions and JPEG EXIF metadata with no runtime dependencies.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
