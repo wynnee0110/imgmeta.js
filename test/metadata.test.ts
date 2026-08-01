@@ -61,3 +61,58 @@ test("remove removes EXIF metadata from a new image", async () => {
     assert.equal(image.exif?.raw[0x0110], undefined); // Model should be gone
     assert.equal(image.exif, null);                    // No EXIF at all
 });
+
+// ─── PNG Tests ────────────────────────────────────────────────────────────────
+
+const pngSource = path.resolve("test/sample.png");
+
+test("read() returns format and dimensions for a PNG", async () => {
+    const image = await read(pngSource);
+
+    assert.equal(image.format, "png");
+    assert.ok(image.width  > 0, "width should be positive");
+    assert.ok(image.height > 0, "height should be positive");
+});
+
+test("read() parses eXIf data from a PNG with an embedded eXIf chunk", async () => {
+    const image = await read(pngSource);
+
+    // sample.png is generated with Artist tag (0x013B) = "PNG EXIF Test"
+    assert.notEqual(image.exif, null, "PNG should have EXIF data");
+    assert.equal(image.exif?.raw[0x013B], "PNG EXIF Test");
+});
+
+test("insert() writes and read() retrieves EXIF from a PNG", async () => {
+    const output = path.join(directory, "inserted.png");
+
+    // insert() adds new tags; existing tags in source win over supplied ones.
+    // sample.png already has Artist set, so use a tag that isn't in the source.
+    await insert(pngSource, output, { IFD0: { Copyright: "png insert copyright" } });
+
+    const image = await read(output);
+    assert.equal(image.format, "png");
+    assert.equal(image.exif?.raw[0x8298], "png insert copyright"); // Copyright tag
+    assert.equal(image.exif?.raw[0x013B], "PNG EXIF Test");        // existing Artist preserved
+});
+
+test("update() overwrites an EXIF tag in a PNG", async () => {
+    const inserted = path.join(directory, "inserted.png");
+    const updated  = path.join(directory, "updated.png");
+
+    await insert(pngSource, inserted, { IFD0: { Artist: "first png artist" } });
+    await update(inserted,  updated,  { IFD0: { Artist: "updated png artist" } });
+
+    const image = await read(updated);
+    assert.equal(image.exif?.raw[0x013B], "updated png artist");
+});
+
+test("remove() strips eXIf from a PNG", async () => {
+    const inserted = path.join(directory, "inserted.png");
+    const stripped = path.join(directory, "stripped.png");
+
+    await insert(pngSource, inserted, { IFD0: { Artist: "remove me png" } });
+    await remove(inserted, stripped);
+
+    const image = await read(stripped);
+    assert.equal(image.exif, null, "EXIF should be null after remove()");
+});

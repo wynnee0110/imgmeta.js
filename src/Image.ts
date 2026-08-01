@@ -12,7 +12,7 @@
  */
 
 import fs from "node:fs/promises";
-import { parseExif }       from "./exif.js";
+import { parseExif, parsePngExif } from "./exif.js";
 import type { ExifResult } from "./exif.js";
 
 // Import modular format-specific dimension readers
@@ -137,10 +137,11 @@ export async function openImage(filePath: string): Promise<ImageInfo> {
     }
 
     // ── 3. Parse EXIF ──────────────────────────────────────────────────────────
-    // EXIF is most commonly found in JPEG files (in the APP1 segment).
-    // PNG can technically carry EXIF in an "eXIf" chunk, but that is uncommon
-    // and not yet implemented here.
-    const exif = (format === "jpeg") ? parseExif(buf) : null;
+    // EXIF is most commonly found in JPEG files (APP1 segment).
+    // PNG can carry EXIF in an "eXIf" chunk — parsePngExif handles that.
+    let exif: ExifResult | null = null;
+    if (format === "jpeg") exif = parseExif(buf);
+    if (format === "png")  exif = parsePngExif(buf);
 
     return {
         format,

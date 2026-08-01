@@ -485,3 +485,88 @@ export function parseExif(buffer: Buffer): ExifResult | null {
         return null;
     }
 }
+// ─── Shared TIFF Block Parser ─────────────────────────────────────────────────
+
+/**
+ * Parse a raw TIFF block (as found in a JPEG APP1 or PNG eXIf chunk) into a
+ * structured ExifResult. Shared core for both parseExif and parsePngExif.
+ */
+function parseTiffBlock(tiff: Buffer): ExifResult | null {
+    if (tiff.length < 8) return null;
+    const bom = tiff.subarray(0, 2).toString("ascii");
+    if (bom !== "II" && bom !== "MM") return null;
+    const le = bom === "II";
+    if (readU16(tiff, 2, le) !== 0x002A) return null;
+    const ifd0 = walkIfd(tiff, readU32(tiff, 4, le), le);
+    let exifIfd = new Map<number, unknown>();
+    if (ifd0.has(TAG_EXIF_IFD)) exifIfd = walkIfd(tiff, ifd0.get(TAG_EXIF_IFD) as number, le);
+    let gpsIfd = new Map<number, unknown>();
+    if (ifd0.has(TAG_GPS_IFD))  gpsIfd  = walkIfd(tiff, ifd0.get(TAG_GPS_IFD)  as number, le);
+    const raw: Record<number, unknown> = {};
+    for (const [k, v] of ifd0)    raw[k] = v;
+    for (const [k, v] of exifIfd) raw[k] = v;
+    for (const [k, v] of gpsIfd)  raw[k] = v;
+    const result: ExifResult = { raw };
+    if (ifd0.has(TAG_MAKE))        result.make        = ifd0.get(TAG_MAKE)        as string;
+    if (ifd0.has(TAG_MODEL))       result.model       = ifd0.get(TAG_MODEL)       as string;
+    if (ifd0.has(TAG_ORIENTATION)) result.orientation = ifd0.get(TAG_ORIENTATION) as number;
+    if (exifIfd.has(TAG_DATE_ORIGINAL))  result.dateTaken = parseExifDate(exifIfd.get(TAG_DATE_ORIGINAL)  as string);
+    if (exifIfd.has(TAG_DATE_DIGITIZED)) result.dateDigi  = parseExifDate(exifIfd.get(TAG_DATE_DIGITIZED) as string);
+    if (exifIfd.has(TAG_EXPOSURE_TIME)) result.exposureTime = exifIfd.get(TAG_EXPOSURE_TIME) as number;
+    if (exifIfd.has(TAG_F_NUMBER))      result.fNumber      = exifIfd.get(TAG_F_NUMBER)      as number;
+    if (exifIfd.has(TAG_ISO))           result.iso          = exifIfd.get(TAG_ISO)            as number;
+    if (exifIfd.has(TAG_FOCAL_LENGTH))  result.focalLength  = exifIfd.get(TAG_FOCAL_LENGTH)   as number;
+    if (gpsIfd.has(GPS_LATITUDE) && gpsIfd.has(GPS_LONGITUDE)) {
+        const latVals = gpsIfd.get(GPS_LATITUDE)  as number[];
+        const lonVals = gpsIfd.get(GPS_LONGITUDE) as number[];
+        const latRef  = (gpsIfd.get(GPS_LATITUDE_REF)  as string | undefined) ?? "N";
+        const lonRef  = (gpsIfd.get(GPS_LONGITUDE_REF) as string | undefined) ?? "E";
+        const gps: GpsCoordinates = { latitude: gpsToDecimal(latVals, latRef), longitude: gpsToDecimal(lonVals, lonRef) };
+        if (gpsIfd.has(GPS_ALTITUDE)) {
+            const alt    = gpsIfd.get(GPS_ALTITUDE)     as number;
+            const altRef = gpsIfd.get(GPS_ALTITUDE_REF) as number[] | undefined;
+            gps.altitude = (Array.isArray(altRef) && altRef[0] === 1) ? -alt : alt;
+        }
+        result.gps = gps;
+    }
+    return result;
+}
+
+// ─── PNG eXIf Parser ──────────────────────────────────────────────────────────
+
+/**
+ * Parse EXIF metadata from a PNG image buffer by locating the "eXIf" chunk.
+ *
+ * PNG chunk layout (from byte offset 8, after the 8-byte PNG signature):
+ *   4 bytes  data length (big-endian, excludes type and CRC)
+ *   4 bytes  chunk type  (ASCII, e.g. "eXIf")
+ *   N bytes  chunk data  — a raw TIFF block (identical to JPEG APP1 TIFF)
+ *   4 bytes  CRC-32
+ *
+ * @param buffer  Raw bytes of a PNG image file.
+ * @returns       Decoded EXIF data, or null if the PNG has no eXIf chunk.
+ */
+export function parsePngExif(buffer: Buffer): ExifResult | null {
+    try {
+        // Verify 8-byte PNG signature: 89 50 4E 47 0D 0A 1A 0A
+        if (buffer.length < 8 ||
+            buffer[0] !== 0x89 || buffer[1] !== 0x50 ||
+            buffer[2] !== 0x4E || buffer[3] !== 0x47 ||
+            buffer[4] !== 0x0D || buffer[5] !== 0x0A ||
+            buffer[6] !== 0x1A || buffer[7] !== 0x0A) {
+            return null;
+        }
+        let offset = 8; // skip the PNG signature
+        while (offset + 12 <= buffer.length) {
+            const dataLen = buffer.readUInt32BE(offset);
+            const type    = buffer.subarray(offset + 4, offset + 8).toString("ascii");
+            const dataEnd = offset + 8 + dataLen;
+            if (type === "eXIf") return parseTiffBlock(buffer.subarray(offset + 8, dataEnd));
+            if (type === "IEND") break;
+            offset = dataEnd + 4; // skip CRC
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
